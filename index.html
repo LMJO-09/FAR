@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Bot — Intelligent Agricultural Robot | Jordan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #020208;
+            --bg-card: #0a0a18;
+            --bg-card-hover: #0e0e20;
+            --text-primary: #f0f0f5;
+            --text-secondary: #b0b0c0;
+            --text-muted: #6b6b80;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --green-particle: #4ade80;
+            --green-glow: rgba(74, 222, 128, 0.5);
+            --radius-xl: 28px;
+            --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-display: 'Orbitron', 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', 'Space Grotesk', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        #particleCanvas { position: fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events: none; }
+
+        .nav {
+            position: fixed; top:0; left:0; width:100%; z-index:1000; padding:1.2rem 2rem;
+            transition: var(--transition-smooth);
+        }
+        .nav.scrolled {
+            backdrop-filter: blur(20px); background: rgba(2,2,8,0.7);
+            border-bottom:1px solid var(--border-subtle); padding:0.8rem 2rem;
+        }
+        .nav-inner { max-width:1300px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
+        .nav-logo { font-family:var(--font-display); font-weight:700; font-size:1.3rem; letter-spacing:0.08em; color:#fff; text-decoration:none; display:flex; align-items:center; gap:0.5rem; }
+        .nav-logo .logo-dot { width:7px; height:7px; border-radius:50%; background:var(--green-particle); box-shadow:0 0 10px var(--green-glow); animation:logoPulse 2s infinite; }
+        @keyframes logoPulse { 0%,100%{ box-shadow:0 0 8px var(--green-glow); } 50%{ box-shadow:0 0 20px var(--green-glow),0 0 35px rgba(74,222,128,0.3); } }
+        .nav-links { display:flex; list-style:none; gap:2.2rem; align-items:center; }
+        .nav-links a { color:var(--text-secondary); text-decoration:none; font-size:0.9rem; font-weight:500; letter-spacing:0.03em; transition:0.2s; position:relative; padding:0.3rem 0; }
+        .nav-links a::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:1.5px; background:#fff; transition:0.4s; }
+        .nav-links a:hover { color:#fff; }
+        .nav-links a:hover::after { width:100%; }
+        .nav-cta { padding:0.55rem 1.4rem; border:1px solid rgba(255,255,255,0.3); border-radius:50px; color:#fff; text-decoration:none; font-size:0.85rem; font-weight:600; transition:0.3s; }
+        .nav-cta:hover { border-color:#fff; background:rgba(255,255,255,0.05); }
+        .menu-toggle { display:none; flex-direction:column; gap:5px; cursor:pointer; z-index:1001; background:none; border:none; padding:5px; }
+        .menu-toggle span { display:block; width:26px; height:2px; background:#fff; border-radius:2px; }
+
+        /* HERO WITH VIDEO BACKGROUND */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+        .hero-video {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.4) contrast(1.1);
+        }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 30%, rgba(2,2,8,0.8) 90%);
+            z-index: 0;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            text-align: center;
+        }
+        .hero-badge {
+            display: inline-block;
+            padding: 0.45rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.02);
+        }
+        .hero-badge .badge-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green-particle);
+            margin-right: 0.5rem;
+            box-shadow: 0 0 8px var(--green-glow);
+            animation: logoPulse 2s infinite;
+        }
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(3.5rem, 10vw, 8rem);
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 100px rgba(0,0,0,0.5);
+        }
+        .hero-title .highlight {
+            position: relative;
+            display: inline-block;
+        }
+        .hero-title .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 1px;
+        }
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.35rem);
+            color: rgba(255,255,255,0.8);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            backdrop-filter: blur(5px);
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            padding: 0.85rem 2.2rem;
+            background: #fff;
+            color: #000;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .btn-outline {
+            padding: 0.85rem 2.2rem;
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #fff;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        .scroll-indicator span { font-size:0.7rem; letter-spacing:0.1em; color:var(--text-muted); text-transform:uppercase; }
+        .scroll-line { width:1px; height:40px; background:rgba(255,255,255,0.3); animation:scrollPulse 2s infinite; }
+        @keyframes scrollPulse { 0%,100%{ opacity:0.3; height:35px; } 50%{ opacity:1; height:55px; } }
+
+        /* SECTIONS */
+        .section { position: relative; z-index:1; padding:6rem 2rem; max-width:1200px; margin:0 auto; }
+        .section-label { font-family:'Space Grotesk',monospace; font-size:0.75rem; letter-spacing:0.15em; color:var(--text-muted); margin-bottom:1rem; }
+        .section-title { font-family:var(--font-display); font-size:clamp(2rem,4vw,3rem); color:#fff; margin-bottom:1rem; }
+        .section-desc { color:var(--text-secondary); max-width:650px; }
+
+        .features-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:1.8rem; margin-top:3rem; }
+        .feature-card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-xl); overflow:hidden; transition:0.3s; }
+        .feature-card:hover { border-color:rgba(255,255,255,0.25); transform:translateY(-5px); }
+        .feature-img { width:100%; height:170px; object-fit:cover; border-bottom:1px solid var(--border-card); filter:brightness(0.8); transition:0.4s; }
+        .feature-card:hover .feature-img { filter:brightness(1); }
+        .feature-body { padding:1.5rem; }
+        .feature-body h3 { font-family:var(--font-display); color:#fff; margin-bottom:0.5rem; font-size:1rem; }
+        .feature-body p { color:var(--text-muted); font-size:0.9rem; }
+
+        .specs-strip { display:grid; grid-template-columns: repeat(4,1fr); gap:1.5rem; margin-top:3rem; }
+        .spec-item { background:var(--bg-card); border:1px solid var(--border-card); border-radius:20px; padding:2rem; text-align:center; }
+        .spec-value { font-family:var(--font-display); font-size:2rem; color:#fff; }
+        .spec-label { color:var(--text-muted); font-size:0.8rem; margin-top:0.4rem; text-transform:uppercase; }
+
+        .team-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:2rem; max-width:700px; margin:3rem auto 0; }
+        .team-card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-xl); padding:2.5rem; text-align:center; }
+        .team-avatar { width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,0.04); margin:0 auto 1rem; display:flex; align-items:center; justify-content:center; font-size:2.5rem; }
+        .team-card h3 { color:#fff; font-family:var(--font-display); }
+        .team-card p { color:var(--text-muted); }
+
+        /* GALLERY */
+        .gallery-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:1.2rem; margin-top:2.5rem; }
+        .gallery-img { width:100%; border-radius:20px; border:1px solid var(--border-card); object-fit:cover; height:220px; filter:brightness(0.9); transition:0.4s; }
+        .gallery-img:hover { filter:brightness(1.05); transform:scale(1.03); border-color:rgba(255,255,255,0.3); }
+        .gallery-caption { text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:0.5rem; }
+
+        .footer { border-top:1px solid var(--border-subtle); padding:2.5rem; text-align:center; color:var(--text-muted); position:relative; z-index:1; }
+        .footer a { color:var(--text-secondary); text-decoration:none; }
+        .footer a:hover { color:#fff; }
+
+        .reveal { opacity:0; transform:translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .reveal.revealed { opacity:1; transform:translateY(0); }
+
+        @media (max-width:1024px) {
+            .features-grid { grid-template-columns:1fr 1fr; }
+            .specs-strip { grid-template-columns:1fr 1fr; }
+            .gallery-grid { grid-template-columns: repeat(2,1fr); }
+        }
+        @media (max-width:768px) {
+            .nav-links { display:none; position:fixed; inset:0; background:rgba(2,2,8,0.95); flex-direction:column; justify-content:center; align-items:center; gap:2rem; z-index:999; }
+            .nav-links.active { display:flex; }
+            .menu-toggle { display:flex; }
+            .features-grid { grid-template-columns:1fr; }
+            .team-grid { grid-template-columns:1fr; }
+            .gallery-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+
+    <nav class="nav" id="navbar">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo"><span class="logo-dot"></span>FARM BOT</a>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#about">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#specs">Specs</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#contact" class="nav-cta">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ========== HERO WITH VIDEO ========== -->
+    <section class="hero" id="hero">
+        <video class="hero-video" autoplay loop muted playsinline>
+            <source src="https://i.top4top.io/m_3802834yl1.mp4" type="video/mp4">
+            <img src="https://i.ibb.co/FLtcZJSQ/F84.jpg" alt="Farm Bot">
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content reveal">
+            <div class="hero-badge"><span class="badge-dot"></span> Designed & Built in Jordan</div>
+            <h1 class="hero-title">FARM<br><span class="highlight">BOT</span></h1>
+            <p class="hero-subtitle">The intelligent agricultural robot — revolutionizing farming through autonomous monitoring, precise crop analysis, and seamless human-robot collaboration.</p>
+            <div class="hero-buttons">
+                <a href="#about" class="btn-primary">Discover More</a>
+                <a href="#features" class="btn-outline">View Capabilities</a>
+            </div>
+        </div>
+        <div class="scroll-indicator" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
+            <span>Scroll</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <!-- ========== ABOUT ========== -->
+    <section class="section" id="about">
+        <div class="section-label reveal">// About The Project</div>
+        <h2 class="section-title reveal">Redefining Agriculture<br>With Intelligent Robotics</h2>
+        <p class="section-desc reveal" style="margin-bottom:2rem; max-width:800px;">Farm Bot is an intelligent agricultural robot fully designed and built in <strong style="color:#fff;">Jordan</strong> by the students <strong style="color:#fff;">Abdulrahman Al-Maaytah</strong> and <strong style="color:#fff;">Haitham Al-Maaytah</strong>. It monitors crops, detects harmful plants, makes autonomous decisions, and can be controlled remotely — representing the perfect integration of modern technology with traditional farming.</p>
+    </section>
+
+    <!-- ========== ROBOT PHOTOS (NEW) ========== -->
+    <section class="section" style="padding-top:2rem;">
+        <div class="section-label reveal">// Meet Farm Bot</div>
+        <h2 class="section-title reveal">The Real Robot</h2>
+        <div class="gallery-grid reveal">
+            <div>
+                <img src="https://i.ibb.co/FLtcZJSQ/F84.jpg" alt="Farm Bot robot" class="gallery-img" loading="lazy">
+                <p class="gallery-caption">Farm Bot in action</p>
+            </div>
+            <div>
+                <img src="https://i.ibb.co/TMLVSQ8G/F82.jpg" alt="Farm Bot robot" class="gallery-img" loading="lazy">
+                <p class="gallery-caption">Close-up view</p>
+            </div>
+            <div>
+                <img src="https://i.ibb.co/B20wzrXp/F81.jpg" alt="Farm Bot robot" class="gallery-img" loading="lazy">
+                <p class="gallery-caption">Field deployment</p>
+            </div>
+            <div>
+                <img src="https://i.ibb.co/FLtcZJSQ/F84.jpg" alt="Farm Bot robot" class="gallery-img" loading="lazy">
+                <p class="gallery-caption">Autonomous operation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FEATURES ========== -->
+    <section class="section" id="features">
+        <div class="section-label reveal">// Core Capabilities</div>
+        <h2 class="section-title reveal">What Farm Bot Can Do</h2>
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <img src="https://img.b2bpic.net/free-photo/grass-blade-with-water-drops_23-2147759119.jpg" alt="Growth tracking" class="feature-img" loading="lazy">
+                <div class="feature-body"><h3>🌱 Growth Tracking</h3><p>Monitors crops continuously, tracking growth stages and identifying plants ready for harvest.</p></div>
+            </div>
+            <div class="feature-card reveal">
+                <img src="https://img.b2bpic.net/free-photo/close-up-xanthosoma-leaves_53876-75098.jpg" alt="Disease detection" class="feature-img" loading="lazy">
+                <div class="feature-body"><h3>🛡️ Disease Detection</h3><p>Automatically detects harmful plants and diseases, removing them without damaging healthy crops.</p></div>
+            </div>
+            <div class="feature-card reveal">
+                <img src="https://img.b2bpic.net/free-photo/3d-render-techno-background-with-male-head-programming-code_1048-5828.jpg" alt="AI decisions" class="feature-img" loading="lazy">
+                <div class="feature-body"><h3>🧠 AI Decision Making</h3><p>Operates independently using AI to make accurate agricultural decisions based on real‑time data.</p></div>
+            </div>
+            <div class="feature-card reveal">
+                <img src="https://img.b2bpic.net/free-photo/farmer-with-tablet-close-up_23-2148579698.jpg" alt="Remote control" class="feature-img" loading="lazy">
+                <div class="feature-body"><h3>📡 Remote Monitoring</h3><p>Fully controllable from anywhere, giving farmers complete oversight of their fields.</p></div>
+            </div>
+            <div class="feature-card reveal">
+                <img src="https://img.b2bpic.net/free-photo/side-view-elder-woman-sitting-wheat-field_23-2148579985.jpg" alt="Reports" class="feature-img" loading="lazy">
+                <div class="feature-body"><h3>📊 Detailed Reports</h3><p>Generates comprehensive reports on land and crop conditions for smarter planning.</p></div>
+            </div>
+            <div class="feature-card reveal">
+                <img src="https://img.b2bpic.net/free-photo/smart-robotic-farmers-concept-robot-farmers-agriculture-technology-farm-automation_35913-2567.jpg" alt="Resource optimization" class="feature-img" loading="lazy">
+                <div class="feature-body"><h3>♻️ Resource Optimization</h3><p>Reduces waste of water, fertilizers, and time — for truly sustainable farming.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== SPECS ========== -->
+    <section class="section" id="specs">
+        <div class="section-label reveal">// Technical Highlights</div>
+        <h2 class="section-title reveal">Built for Performance</h2>
+        <div class="specs-strip reveal">
+            <div class="spec-item"><div class="spec-value">24/7</div><div class="spec-label">Operation</div></div>
+            <div class="spec-item"><div class="spec-value">AI</div><div class="spec-label">Intelligence</div></div>
+            <div class="spec-item"><div class="spec-value">100%</div><div class="spec-label">Autonomous</div></div>
+            <div class="spec-item"><div class="spec-value">Remote</div><div class="spec-label">Control</div></div>
+        </div>
+    </section>
+
+    <!-- ========== GALLERY (additional images) ========== -->
+    <section class="section" id="gallery">
+        <div class="section-label reveal">// Visual Gallery</div>
+        <h2 class="section-title reveal">More Farm Bot Moments</h2>
+        <div class="gallery-grid reveal">
+            <img src="https://img.b2bpic.net/free-photo/robot-drones-farming-field-sunset_23-2152000893.jpg" alt="Drones at sunset" class="gallery-img" loading="lazy">
+            <img src="https://img.b2bpic.net/free-photo/robots-drones-agricultural-field-sunrise_23-2152000861.jpg" alt="Sunrise robots" class="gallery-img" loading="lazy">
+            <img src="https://img.b2bpic.net/free-photo/asian-woman-studying-different-plants-with-tablet_23-2148776799.jpg" alt="Research" class="gallery-img" loading="lazy">
+            <img src="https://img.b2bpic.net/free-photo/zoom-out-home-office-with-monitors-stock-market_482257-29630.jpg" alt="Dashboard" class="gallery-img" loading="lazy">
+        </div>
+    </section>
+
+    <!-- ========== TEAM ========== -->
+    <section class="section" id="team">
+        <div class="section-label reveal" style="text-align:center;">// The Creators</div>
+        <h2 class="section-title reveal" style="text-align:center;">Meet The Team</h2>
+        <div class="team-grid reveal">
+            <div class="team-card"><div class="team-avatar">👨‍💻</div><h3>Abdulrahman Al-Maaytah</h3><p>Co-Founder & Lead Engineer</p><p>📍 Jordan</p></div>
+            <div class="team-card"><div class="team-avatar">👨‍🔬</div><h3>Haitham Al-Maaytah</h3><p>Co-Founder & Systems Architect</p><p>📍 Jordan</p></div>
+        </div>
+    </section>
+
+    <!-- ========== CONTACT ========== -->
+    <section class="section reveal" style="text-align:center;" id="contact">
+        <div class="section-label">// Get In Touch</div>
+        <h2 class="section-title">Ready to Transform Farming?</h2>
+        <p class="section-desc" style="margin:0 auto 2rem;">Farm Bot is the perfect partner for smarter, more efficient, and sustainable agriculture.</p>
+        <a href="https://farmbot1238.github.io/Farm-bot-/" target="_blank" rel="noopener" class="btn-primary">Visit Project Page</a>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2026 Farm Bot. Designed & Built in Jordan by Abdulrahman & Haitham Al-Maaytah.</p>
+    </footer>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+            function resize() { w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; initParticles(); }
+            function initParticles() {
+                particles = [];
+                for(let i=0; i<100; i++) particles.push({ x:Math.random()*w, y:Math.random()*h, r:Math.random()*2+1, speedY:Math.random()*0.5+0.1, opacity:Math.random()*0.6+0.2 });
+            }
+            resize(); window.addEventListener('resize', resize);
+            function animate() {
+                ctx.clearRect(0,0,w,h);
+                for(let p of particles) {
+                    p.y -= p.speedY;
+                    if(p.y < -10) { p.y = h+10; p.x = Math.random()*w; }
+                    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+                    ctx.fillStyle = `rgba(74,222,128,${p.opacity})`; ctx.fill();
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60));
+            document.getElementById('menuToggle').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('active'));
+            document.querySelectorAll('#navLinks a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('active')));
+
+            const observer = new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('revealed'); observer.unobserve(e.target); } }) }, { threshold:0.1 });
+            document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+            document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',function(e){ const t=document.querySelector(this.getAttribute('href')); if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); } }));
+        })();
+    </script>
+</body>
+</html>
