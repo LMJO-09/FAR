@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- مكتبة model-viewer لعرض المجسمات -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.1/model-viewer.min.js"></script>
+    <!-- مكتبة model-viewer لعرض ملفات GLB -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         :root {
             --bg-deep: #020208;
@@ -34,7 +34,6 @@
             overflow-x: hidden;
             line-height: 1.7;
         }
-
         #particleCanvas { position: fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events: none; }
 
         .nav {
@@ -110,19 +109,67 @@
         .gallery-img:hover { filter:brightness(1.05); transform:scale(1.03); border-color:rgba(255,255,255,0.3); }
         .gallery-caption { text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:0.5rem; }
 
-        /* model-viewer wrapper */
-        .model-wrapper {
-            width: 100%; max-width: 1000px; margin: 2rem auto 0; border-radius: var(--radius-xl);
-            overflow: hidden; border: 1px solid var(--border-card);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(74,222,128,0.08);
-            background: #000; transition: var(--transition-smooth);
+        /* 3D Models Section */
+        .models-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2.5rem;
         }
-        .model-wrapper:hover { border-color: rgba(255,255,255,0.2); box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 50px rgba(74,222,128,0.12); }
-        model-viewer {
-            width: 100%; height: 600px; display: block;
+        .model-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            width: 320px;
+            max-width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: var(--transition-smooth);
+        }
+        .model-card:hover {
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 25px 55px rgba(0,0,0,0.7), 0 0 35px rgba(74,222,128,0.1);
+            transform: translateY(-5px);
+        }
+        .model-viewer {
+            width: 100%;
+            height: 350px;
+            background: #000;
             --poster-color: transparent;
             --progress-bar-color: #4ade80;
             --progress-mask: transparent;
+        }
+        .model-label {
+            text-align: center;
+            padding: 1rem;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-card);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .instagram-section {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 3rem;
+        }
+        .instagram-link {
+            color: var(--green-particle);
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: 0.3s;
+        }
+        .instagram-link:hover {
+            color: #fff;
+            transform: scale(1.05);
         }
 
         .footer { border-top:1px solid var(--border-subtle); padding:2.5rem; text-align:center; color:var(--text-muted); position:relative; z-index:1; }
@@ -132,8 +179,23 @@
         .reveal { opacity:0; transform:translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         .reveal.revealed { opacity:1; transform:translateY(0); }
 
-        @media (max-width:1024px) { .features-grid { grid-template-columns:1fr 1fr; } .specs-strip { grid-template-columns:1fr 1fr; } .gallery-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width:768px) { .nav-links { display:none; position:fixed; inset:0; background:rgba(2,2,8,0.95); flex-direction:column; justify-content:center; align-items:center; gap:2rem; z-index:999; } .nav-links.active { display:flex; } .menu-toggle { display:flex; } .features-grid { grid-template-columns:1fr; } .team-grid { grid-template-columns:1fr; } .gallery-grid { grid-template-columns:1fr; } model-viewer { height: 350px; } }
+        @media (max-width:1024px) {
+            .features-grid { grid-template-columns:1fr 1fr; }
+            .specs-strip { grid-template-columns:1fr 1fr; }
+            .gallery-grid { grid-template-columns: repeat(2,1fr); }
+            .models-grid { flex-direction: column; align-items: center; }
+            .model-card { width: 100%; max-width: 500px; }
+        }
+        @media (max-width:768px) {
+            .nav-links { display:none; position:fixed; inset:0; background:rgba(2,2,8,0.95); flex-direction:column; justify-content:center; align-items:center; gap:2rem; z-index:999; }
+            .nav-links.active { display:flex; }
+            .menu-toggle { display:flex; }
+            .features-grid { grid-template-columns:1fr; }
+            .team-grid { grid-template-columns:1fr; }
+            .gallery-grid { grid-template-columns:1fr; }
+            .model-card { width: 100%; }
+            .model-viewer { height: 300px; }
+        }
     </style>
 </head>
 <body>
@@ -148,7 +210,7 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#specs">Specs</a></li>
                 <li><a href="#gallery">Gallery</a></li>
-                <li><a href="#3d">3D View</a></li>
+                <li><a href="#models">3D Models</a></li>
                 <li><a href="#team">Team</a></li>
                 <li><a href="#contact" class="nav-cta">Contact</a></li>
             </ul>
@@ -190,37 +252,60 @@
         </div>
     </section>
 
-    <!-- 3D Robot - ملف 3R.glb -->
-    <section class="section" id="3d">
-        <div class="section-label reveal">// Interactive Experience</div>
-        <h2 class="section-title reveal">Explore Farm Bot in 3D</h2>
-        <p class="section-desc reveal" style="margin-bottom:1rem;">Rotate, zoom, and inspect every angle of the Farm Bot robot. Drag to explore.</p>
-        <div class="model-wrapper reveal">
-            <model-viewer src="3R.glb" alt="Farm Bot 3D model" camera-controls auto-rotate auto-rotate-delay="1000" environment-image="neutral" exposure="1.2" shadow-intensity="0.6" camera-orbit="45deg 75deg auto" min-camera-orbit="auto auto 0.5m" max-camera-orbit="auto auto 3m" interpolation-decay="200" loading="lazy">
-                <div class="progress-bar" slot="progress-bar" style="display:none;"></div>
-            </model-viewer>
-        </div>
-    </section>
-
-    <!-- 3D Remote Control - ملف RE.glb -->
-    <section class="section" id="remote">
-        <div class="section-label reveal">// Remote Control Unit</div>
-        <h2 class="section-title reveal">Precision Controller</h2>
-        <p class="section-desc reveal" style="margin-bottom:1rem;">The dedicated remote control used to operate Farm Bot with full manual override capabilities.</p>
-        <div class="model-wrapper reveal">
-            <model-viewer src="RE.glb" alt="Remote Control 3D model" camera-controls auto-rotate auto-rotate-delay="1000" environment-image="neutral" exposure="1.2" shadow-intensity="0.6" camera-orbit="45deg 75deg auto" min-camera-orbit="auto auto 0.3m" max-camera-orbit="auto auto 2m" interpolation-decay="200" loading="lazy">
-            </model-viewer>
-        </div>
-    </section>
-
-    <!-- 3D Drone - ملف DR.glb -->
-    <section class="section" id="drone">
-        <div class="section-label reveal">// Aerial Support</div>
-        <h2 class="section-title reveal">Farm Bot Drone</h2>
-        <p class="section-desc reveal" style="margin-bottom:1rem;">The companion drone that works with Farm Bot for aerial monitoring and field scanning.</p>
-        <div class="model-wrapper reveal">
-            <model-viewer src="DR.glb" alt="Drone 3D model" camera-controls auto-rotate auto-rotate-delay="1000" environment-image="neutral" exposure="1.2" shadow-intensity="0.6" camera-orbit="45deg 75deg auto" min-camera-orbit="auto auto 0.3m" max-camera-orbit="auto auto 2m" interpolation-decay="200" loading="lazy">
-            </model-viewer>
+    <!-- 3D Models Section باستخدام model-viewer -->
+    <section class="section" id="models">
+        <div class="section-label reveal">// Interactive 3D Models</div>
+        <h2 class="section-title reveal">Explore Our Hardware</h2>
+        <p class="section-desc reveal" style="margin-bottom:1rem;">Click and drag to rotate, scroll to zoom. All models are original designs.</p>
+        <div class="models-grid reveal">
+            <!-- الروبوت -->
+            <div class="model-card">
+                <model-viewer 
+                    src="3R.glb" 
+                    alt="Farm Bot Robot" 
+                    auto-rotate 
+                    camera-controls 
+                    shadow-intensity="0.6" 
+                    environment-image="neutral" 
+                    exposure="0.8" 
+                    class="model-viewer"
+                    loading="lazy"
+                    reveal="auto"
+                ></model-viewer>
+                <div class="model-label">🤖 Farm Bot Robot</div>
+            </div>
+            <!-- الريموت -->
+            <div class="model-card">
+                <model-viewer 
+                    src="RE.glb" 
+                    alt="Remote Control" 
+                    auto-rotate 
+                    camera-controls 
+                    shadow-intensity="0.6" 
+                    environment-image="neutral" 
+                    exposure="0.8" 
+                    class="model-viewer"
+                    loading="lazy"
+                    reveal="auto"
+                ></model-viewer>
+                <div class="model-label">🎮 Remote Control</div>
+            </div>
+            <!-- الدرون -->
+            <div class="model-card">
+                <model-viewer 
+                    src="DR.glb" 
+                    alt="Drone" 
+                    auto-rotate 
+                    camera-controls 
+                    shadow-intensity="0.6" 
+                    environment-image="neutral" 
+                    exposure="0.8" 
+                    class="model-viewer"
+                    loading="lazy"
+                    reveal="auto"
+                ></model-viewer>
+                <div class="model-label">🛸 Farm Bot Drone</div>
+            </div>
         </div>
     </section>
 
@@ -274,6 +359,14 @@
         <p class="section-desc" style="margin:0 auto 2rem;">Farm Bot is the perfect partner for smarter, more efficient, and sustainable agriculture.</p>
         <a href="https://farmbot1238.github.io/Farm-bot-/" target="_blank" class="btn-primary">Visit Project Page</a>
     </section>
+
+    <!-- Instagram Section -->
+    <div class="instagram-section reveal">
+        <p style="color:var(--text-muted); margin-bottom:0.5rem;">Follow us for more updates</p>
+        <a href="https://www.instagram.com/your_username" target="_blank" class="instagram-link">
+            <span>📷</span> @FarmBot.Jo
+        </a>
+    </div>
 
     <footer class="footer">
         <p>&copy; 2026 Farm Bot. Designed & Built in Jordan by Abdulrahman & Haitham Al-Maaytah.</p>
